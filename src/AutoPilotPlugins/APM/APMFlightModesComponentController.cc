@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -9,17 +9,14 @@
 
 
 #include "APMFlightModesComponentController.h"
-#include "FactSystem.h"
 #include "Fact.h"
 #include "Vehicle.h"
+#include "ParameterManager.h"
 
 #include <QtCore/QVariant>
 #include <QtQml/QQmlEngine>
 
 bool APMFlightModesComponentController::_typeRegistered = false;
-
-const char* APMFlightModesComponentController::_simpleParamName =       "SIMPLE";
-const char* APMFlightModesComponentController::_superSimpleParamName =  "SUPER_SIMPLE";
 
 APMFlightModesComponentController::APMFlightModesComponentController(void)
     : _activeFlightMode     (0)
@@ -65,7 +62,7 @@ APMFlightModesComponentController::APMFlightModesComponentController(void)
     for (int i=1; i<7; i++) {
         usedParams << QStringLiteral("%1%2").arg(_modeParamPrefix).arg(i);
     }
-    if (!_allParametersExists(FactSystem::defaultComponentId, usedParams)) {
+    if (!_allParametersExists(ParameterManager::defaultComponentId, usedParams)) {
         return;
     }
 
@@ -81,8 +78,8 @@ void APMFlightModesComponentController::_rcChannelsChanged(int channelCount, int
 {
     int flightModeChannel = 4;
 
-    if (parameterExists(FactSystem::defaultComponentId, _modeChannelParam)) {
-        flightModeChannel = getParameterFact(FactSystem::defaultComponentId, _modeChannelParam)->rawValue().toInt() - 1;
+    if (parameterExists(ParameterManager::defaultComponentId, _modeChannelParam)) {
+        flightModeChannel = getParameterFact(ParameterManager::defaultComponentId, _modeChannelParam)->rawValue().toInt() - 1;
     }
 
     if (flightModeChannel >= channelCount) {

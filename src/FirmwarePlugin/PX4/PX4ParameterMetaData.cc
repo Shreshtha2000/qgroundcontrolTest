@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -18,8 +18,6 @@
 #include <QtCore/QDir>
 #include <QtCore/QDebug>
 #include <QtCore/QXmlStreamReader>
-
-static const char* kInvalidConverstion = "Internal Error: No support for string parameters";
 
 QGC_LOGGING_CATEGORY(PX4ParameterMetaDataLog, "PX4ParameterMetaDataLog")
 

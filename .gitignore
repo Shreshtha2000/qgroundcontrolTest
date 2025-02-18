@@ -74,6 +74,7 @@ ui_*
 
 # android
 android/local.properties
+*.class
 
 # doxygen
 src/html/
@@ -89,3 +90,6 @@ Qt*-linux*.tar.*
 node_modules/
 docs/.vitepress/cache/
 docs/.vitepress/dist/
+
+CMakeUserPresets.json
+cpm_modules

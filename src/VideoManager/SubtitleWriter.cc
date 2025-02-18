@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -26,15 +26,22 @@
 #include <QtCore/QDateTime>
 #include <QtCore/QString>
 #include <QtCore/QFileInfo>
+#include <QtCore/QTimer>
 
-QGC_LOGGING_CATEGORY(SubtitleWriterLog, "SubtitleWriterLog")
-
-const int SubtitleWriter::_sampleRate = 1; // Sample rate in Hz for getting telemetry data, most players do weird stuff when > 1Hz
+QGC_LOGGING_CATEGORY(SubtitleWriterLog, "qgc.videomanager.subtitlewriter")
 
 SubtitleWriter::SubtitleWriter(QObject* parent)
     : QObject(parent)
+    , _timer(new QTimer(this))
 {
-    connect(&_timer, &QTimer::timeout, this, &SubtitleWriter::_captureTelemetry);
+    // qCDebug(SubtitleWriterLog) << Q_FUNC_INFO << this;
+
+    (void) connect(_timer, &QTimer::timeout, this, &SubtitleWriter::_captureTelemetry);
+}
+
+SubtitleWriter::~SubtitleWriter()
+{
+    // qCDebug(SubtitleWriterLog) << Q_FUNC_INFO << this;
 }
 
 void SubtitleWriter::startCapturingTelemetry(const QString& videoFile)
@@ -51,7 +58,9 @@ void SubtitleWriter::startCapturingTelemetry(const QString& videoFile)
         QmlObjectListModel* list = grid->columns()->value<QmlObjectListModel*>(colIndex);
         for (int rowIndex = 0; rowIndex < list->count(); rowIndex++) {
             InstrumentValueData* value = list->value<InstrumentValueData*>(rowIndex);
-            _facts += value->fact();
+            if (value->fact()) {
+                _facts += value->fact();
+            }
         }
     }
     grid->deleteLater();
@@ -93,13 +102,13 @@ void SubtitleWriter::startCapturingTelemetry(const QString& videoFile)
     // TODO: Find a good way to input title
     //stream << QStringLiteral("Dialogue: 0,0:00:00.00,999:00:00.00,Default,,0,0,0,,{\\pos(5,35)}%1\n");
 
-    _timer.start(1000/_sampleRate);
+    _timer->start(1000/_sampleRate);
 }
 
 void SubtitleWriter::stopCapturingTelemetry()
 {
     qCDebug(SubtitleWriterLog) << "Stopping writing";
-    _timer.stop();
+    _timer->stop();
     _file.close();
 }
 
@@ -108,7 +117,7 @@ void SubtitleWriter::_captureTelemetry()
     static const float nRows = 3; // number of rows used for displaying data
     static const int offsetFactor = 700; // Used to simulate a larger resolution and reduce the borders in the layout
 
-    auto *vehicle = qgcApp()->toolbox()->multiVehicleManager()->activeVehicle();
+    auto *vehicle = MultiVehicleManager::instance()->activeVehicle();
 
     if (!vehicle) {
         qCWarning(SubtitleWriterLog) << "Attempting to capture fact data with no active vehicle!";

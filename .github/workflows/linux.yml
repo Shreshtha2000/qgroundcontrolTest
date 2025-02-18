@@ -7,35 +7,36 @@ on:
       - 'Stable*'
     tags:
       - 'v*'
-    paths-ignore:
-      - 'android/**'
-      - 'deploy/**'
-      - 'docs/**'
   pull_request:
-    paths-ignore:
-      - 'android/**'
-      - 'deploy/**'
-      - 'docs/**'
-      - '.github/workflows/docs_deploy.yml'
-      - '.github/workflows/android.yml'
-      - '.github/workflows/macos.yml'
-      - '.github/workflows/windows.yml'
+    paths:
+      - '.github/workflows/linux.yml'
+      - 'deploy/linux/**'
+      - 'src/**'
+      - 'test/**'
+      - 'CMakeLists.txt'
+      - 'cmake/**'
+
+# concurrency:
+#   group: ${{ github.workflow }}-${{ github.ref }}
+#   cancel-in-progress: ${{ github.ref != 'refs/heads/main' }}
 
 jobs:
   build:
-    runs-on: ubuntu-20.04
+    runs-on: ubuntu-22.04
 
     strategy:
       matrix:
         BuildType: [Debug, Release]
-
-    env:
-      ARTIFACT: QGroundControl-x86_64.AppImage
-      QT_VERSION: 6.6.3
+        # Arch: [x64] # Arm64
 
     defaults:
       run:
         shell: bash
+
+    env:
+      ARTIFACT: QGroundControl-x86_64.AppImage
+      PACKAGE: QGroundControl-x86_64
+      QT_VERSION: 6.8.2
 
     steps:
       - name: Checkout repo
@@ -43,74 +44,53 @@ jobs:
         with:
           submodules: recursive
           fetch-tags: true
-          fetch-depth: 0
 
-      # Temporary solution
-      - name: Remove unused dependencies
-        run: |
-          rm -rf libs/Frameworks
-          rm -rf libs/sdl2
-          rm -rf libs/OpenSSL
+      - name: Initial Setup
+        uses: ./.github/actions/common
 
       - name: Install Dependencies
         run: |
           chmod a+x ./tools/setup/install-dependencies-debian.sh
           sudo ./tools/setup/install-dependencies-debian.sh
-          sudo apt clean
 
-      - name: Install Build Tools
+      - name: Install Vulkan
         run: |
-          wget --quiet https://github.com/ccache/ccache/releases/download/v4.9.1/ccache-4.9.1-linux-x86_64.tar.xz
-          tar -xvf ccache-*-linux-x86_64.tar.xz
-          cd ccache-*-linux-x86_64
-          sudo make install
+          wget -qO- https://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo tee /etc/apt/trusted.gpg.d/lunarg.asc
+          sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-jammy.list http://packages.lunarg.com/vulkan/lunarg-vulkan-jammy.list
+          sudo apt update
+          sudo apt install vulkan-sdk
+
+      - name: Install Compiler
+        run: |
           sudo add-apt-repository ppa:ubuntu-toolchain-r/test
           sudo apt install gcc-13 g++-13
           sudo update-alternatives --install /usr/bin/gcc gcc /usr/bin/gcc-13 100 --slave /usr/bin/g++ g++ /usr/bin/g++-13 --slave /usr/bin/gcov gcov /usr/bin/gcov-13
           sudo update-alternatives --set gcc /usr/bin/gcc-13
-          python3 -m pip install --user ninja meson
 
-      - name: Install Vulkan
-        run: |
-          wget -qO - http://packages.lunarg.com/lunarg-signing-key-pub.asc | sudo apt-key add -
-          sudo wget -qO /etc/apt/sources.list.d/lunarg-vulkan-focal.list http://packages.lunarg.com/vulkan/lunarg-vulkan-focal.list
-          sudo apt update
-          sudo apt install vulkan-sdk
-
-      - name: Set Up Cache
-        uses: hendrikmuhs/ccache-action@v1.2
+      - name: Setup Caching
+        uses: ./.github/actions/cache
         with:
-          create-symlink: true
-          key: ${{ runner.os }}-${{ matrix.BuildType }}
-          restore-keys: ${{ runner.os }}-${{ matrix.BuildType }}
-          max-size: 1G
-          append-timestamp: false
-          save: ${{ github.event_name == 'push' && github.ref == 'refs/heads/master' }}
+          host: linux
+          target: linux_gcc_64
+          build-type: ${{ matrix.BuildType }}
+          cpm-modules: ${{ runner.temp }}/shadow_build_dir/cpm_modules
 
-      - name: Install Qt
+      - name: Install Qt for Linux (x64)
         uses: jurplel/install-qt-action@v4
         with:
           version: ${{ env.QT_VERSION }}
-          aqtversion: ==3.1.*
           host: linux
           target: desktop
+          arch: linux_gcc_64
           dir: ${{ runner.temp }}
           modules: qtcharts qtlocation qtpositioning qtspeech qt5compat qtmultimedia qtserialport qtimageformats qtshadertools qtconnectivity qtquick3d qtsensors
-          setup-python: true
-          cache: ${{ github.ref == 'refs/heads/master' && github.event_name != 'pull_request' }}
 
-    # - name: Build GStreamer
-    #   uses: ./.github/actions/gstreamer
-
-      - name: Cleanup
-        run: sudo apt clean
-
-      - name: Create build directory
-        run:  mkdir ${{ runner.temp }}/shadow_build_dir
+      # - name: Build GStreamer
+      #   uses: ./.github/actions/gstreamer
 
       - name: Configure
         working-directory: ${{ runner.temp }}/shadow_build_dir
-        run: cmake -S ${{ github.workspace }} -B . -G Ninja
+        run: ${{ env.QT_ROOT_DIR }}/bin/qt-cmake -S ${{ github.workspace }} -B . -G Ninja
               -DCMAKE_BUILD_TYPE=${{ matrix.BuildType }}
               -DQGC_BUILD_TESTING=${{ matrix.BuildType == 'Debug' && 'ON' || 'OFF' }}
               -DQGC_STABLE_BUILD=${{ github.ref_type == 'tag' || contains(github.ref, 'Stable') && 'ON' || 'OFF' }}
@@ -123,16 +103,22 @@ jobs:
         working-directory: ${{ runner.temp }}/shadow_build_dir
         run: cmake --install . --config ${{ matrix.BuildType }}
 
+      - name: Sanity check release excecutable
+        if: matrix.BuildType == 'Release'
+        working-directory: ${{ runner.temp }}/shadow_build_dir
+        run: xvfb-run -a ./${{ env.ARTIFACT }} --simple-boot-test
+
       - name: Run unit tests
         if: matrix.BuildType == 'Debug'
-        working-directory:  ${{ runner.temp }}/shadow_build_dir
+        working-directory: ${{ runner.temp }}/shadow_build_dir
         run: xvfb-run -a ./${{ env.ARTIFACT }} --unittest
 
       - name: Upload Build File
-        uses: ./.github/actions/upload
         if: matrix.BuildType == 'Release'
+        uses: ./.github/actions/upload
         with:
           artifact_name: ${{ env.ARTIFACT }}
+          package_name: ${{ env.PACKAGE }}
           aws_key_id: ${{ secrets.AWS_ACCESS_KEY_ID }}
           aws_secret_access_key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
-          source: ''
+          github_token: ${{ secrets.GITHUB_TOKEN }}

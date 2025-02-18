@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -12,7 +12,6 @@
 ///     @author Don Gagne <don@thegagnes.com>
 
 #include "FlightModesComponent.h"
-#include "FactSystem.h"
 #include "ParameterManager.h"
 #include "Vehicle.h"
 
@@ -21,9 +20,9 @@ struct SwitchListItem {
     const char* name;
 };
 
-FlightModesComponent::FlightModesComponent(Vehicle* vehicle, AutoPilotPlugin* autopilot, QObject* parent) :
-    VehicleComponent(vehicle, autopilot, parent),
-    _name(tr("Flight Modes"))
+FlightModesComponent::FlightModesComponent(Vehicle* vehicle, AutoPilotPlugin* autopilot, QObject* parent) 
+    : VehicleComponent(vehicle, autopilot, AutoPilotPlugin::KnownFlightModesVehicleComponent, parent)
+    , _name(tr("Flight Modes"))
 {
 }
 
@@ -53,7 +52,7 @@ bool FlightModesComponent::setupComplete(void) const
         return true;
     }
 
-    if (_vehicle->parameterManager()->parameterExists(FactSystem::defaultComponentId, "RC_MAP_FLTMODE") && _vehicle->parameterManager()->getParameter(FactSystem::defaultComponentId, "RC_MAP_FLTMODE")->rawValue().toInt() != 0) {
+    if (_vehicle->parameterManager()->parameterExists(ParameterManager::defaultComponentId, "RC_MAP_FLTMODE") && _vehicle->parameterManager()->getParameter(ParameterManager::defaultComponentId, "RC_MAP_FLTMODE")->rawValue().toInt() != 0) {
         return true;
     }
 

@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -12,7 +12,6 @@
 #include "QGCApplication.h"
 #include "QGCFileDownload.h"
 #include "ParameterManager.h"
-#include "FactSystem.h"
 #include "Vehicle.h"
 #include "ArduCopterFirmwarePlugin.h"
 #include "ArduRoverFirmwarePlugin.h"
@@ -69,7 +68,7 @@ typedef struct {
     const char* imageResource;
 } FrameToImageInfo_t;
 
-static const FrameToImageInfo_t s_rgFrameToImageCopter[] = {
+static constexpr const FrameToImageInfo_t s_rgFrameToImageCopter[] = {
     { FRAME_CLASS_QUAD,         FRAME_TYPE_X,       "QuadRotorX" },             // Default
     { FRAME_CLASS_QUAD,         FRAME_TYPE_PLUS,    "QuadRotorPlus" },
     { FRAME_CLASS_QUAD,         FRAME_TYPE_V,       "QuadRotorWide" },
@@ -101,7 +100,7 @@ static const FrameToImageInfo_t s_rgFrameToImageCopter[] = {
     { FRAME_CLASS_TRI,          -1,                 "YPlus" },
 };
 
-static const FrameToImageInfo_t s_rgFrameToImageRover[] = {
+static constexpr const FrameToImageInfo_t s_rgFrameToImageRover[] = {
     { FRAME_CLASS_ROVER,    -1, "Rover" },
     { FRAME_CLASS_BOAT,     -1, "Boat" },
 };
@@ -139,8 +138,8 @@ static QString s_findImageResourceRover(int frameClass, int frameType)
 }
 
 APMAirframeComponentController::APMAirframeComponentController(void)
-    : _frameClassFact   (getParameterFact(FactSystem::defaultComponentId, QStringLiteral("FRAME_CLASS"), false /* reportMissing */))
-    , _frameTypeFact    (getParameterFact(FactSystem::defaultComponentId, QStringLiteral("FRAME_TYPE"), false /* reportMissing */))
+    : _frameClassFact   (getParameterFact(ParameterManager::defaultComponentId, QStringLiteral("FRAME_CLASS"), false /* reportMissing */))
+    , _frameTypeFact    (getParameterFact(ParameterManager::defaultComponentId, QStringLiteral("FRAME_TYPE"), false /* reportMissing */))
     , _frameClassModel  (new QmlObjectListModel(this))
 {
     _fillFrameClasses();
@@ -214,7 +213,7 @@ void APMAirframeComponentController::_loadParametersFromDownloadFile(const QStri
 
 void APMAirframeComponentController::loadParameters(const QString& paramFile)
 {
-    QGuiApplication::overrideCursor()->setShape(Qt::WaitCursor);
+    QGuiApplication::setOverrideCursor(QCursor(Qt::WaitCursor));
 
     QString paramFileUrl = QStringLiteral("https://api.github.com/repos/ArduPilot/ardupilot/contents/Tools/Frame_params/%1?ref=master");
 
@@ -297,7 +296,7 @@ APMFrameClass::APMFrameClass(const QString& name, bool copter, int frameClass, F
             }
         }
         if (_imageResourceDefault.isEmpty()) {
-            _imageResourceDefault = QStringLiteral("/qmlimages/Airframe/AirframeUnknown");
+            _imageResourceDefault = QStringLiteral("/qmlimages/Airframe/AirframeUnknown.svg");
         }
 
         // Filter the enums

@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -10,8 +10,6 @@
 #include "KMLHelper.h"
 
 #include <QtCore/QFile>
-
-const char* KMLHelper::_errorPrefix = QT_TR_NOOP("KML file load failed. %1");
 
 QDomDocument KMLHelper::_loadFile(const QString& kmlFile, QString& errorString)
 {
@@ -30,10 +28,9 @@ QDomDocument KMLHelper::_loadFile(const QString& kmlFile, QString& errorString)
     }
 
     QDomDocument doc;
-    QString errorMessage;
-    int errorLine;
-    if (!doc.setContent(&file, &errorMessage, &errorLine)) {
-        errorString = QString(_errorPrefix).arg(tr("Unable to parse KML file: %1 error: %2 line: %3").arg(kmlFile).arg(errorMessage).arg(errorLine));
+    const QDomDocument::ParseResult result = doc.setContent(&file, QDomDocument::ParseOption::Default);
+    if (!result) {
+        errorString = QString(_errorPrefix).arg(tr("Unable to parse KML file: %1 error: %2 line: %3").arg(kmlFile).arg(result.errorMessage).arg(result.errorLine));
         return QDomDocument();
     }
 

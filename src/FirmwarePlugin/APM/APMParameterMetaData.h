@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -84,4 +84,6 @@ private:
     bool                                            _parameterMetaDataLoaded        = false;    ///< true: parameter meta data already loaded
     // FIXME: metadata is vehicle type specific now
     QMap<QString, ParameterNametoFactMetaDataMap>   _vehicleTypeToParametersMap;                ///< Maps from a vehicle type to paramametertoFactMeta map>
+
+    static constexpr const char* kInvalidConverstion = "Internal Error: No support for string parameters";
 };

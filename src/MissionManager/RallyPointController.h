@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -77,7 +77,7 @@ private:
     QObject*            _currentRallyPoint =    nullptr;
     bool                _itemsRequested =       false;
 
-    static const int    _jsonCurrentVersion = 2;
-    static const char*  _jsonFileTypeValue;
-    static const char*  _jsonPointsKey;
+    static constexpr int    _jsonCurrentVersion = 2;
+    static constexpr const char* _jsonFileTypeValue =  "RallyPoints";
+    static constexpr const char* _jsonPointsKey =      "points";
 };

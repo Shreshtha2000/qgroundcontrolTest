@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -19,12 +19,9 @@ Q_DECLARE_LOGGING_CATEGORY(FirmwareUpgradeVerboseLog)
 Q_DECLARE_LOGGING_CATEGORY(MissionCommandsLog)
 Q_DECLARE_LOGGING_CATEGORY(MissionItemLog)
 Q_DECLARE_LOGGING_CATEGORY(ParameterManagerLog)
-Q_DECLARE_LOGGING_CATEGORY(GeotaggingLog)
-Q_DECLARE_LOGGING_CATEGORY(RTKGPSLog)
 Q_DECLARE_LOGGING_CATEGORY(GuidedActionsControllerLog)
 Q_DECLARE_LOGGING_CATEGORY(LocalizationLog)
 Q_DECLARE_LOGGING_CATEGORY(VideoAllLog) // turns on all individual QGC video logs
-Q_DECLARE_LOGGING_CATEGORY(JoystickLog)
 
 /// @def QGC_LOGGING_CATEGORY
 /// This is a QGC specific replacement for Q_LOGGING_CATEGORY. It will register the category name into a
@@ -62,7 +59,7 @@ private:
     QStringList _registeredCategories;
     QString     _commandLineLoggingOptions;
 
-    static const char* _filterRulesSettingsGroup;
+    static constexpr const char* _filterRulesSettingsGroup = "LoggingFilters";
 };
         
 class QGCLoggingCategory

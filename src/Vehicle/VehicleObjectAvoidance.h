@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -63,5 +63,7 @@ private:
     int             _maxDistance    = 0;
     qreal           _angleOffset    = 0;
     Vehicle*        _vehicle        = nullptr;
+
+    static constexpr const char* kColPrevParam = "CP_DIST";
 };
 

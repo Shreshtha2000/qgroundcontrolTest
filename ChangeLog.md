@@ -4,10 +4,14 @@ Note: This file only contains high level features or important fixes.
 
 ## 5.0 - Daily Build
 
-* New combined compass and attitude instrument
-* You can select between multiple instruments by clicking on the instrument conntrol on a desktop build or press and hold on mobile builds
-* Support for Fly View and Joystick custom mavlink actions has changed. Both the name and formation of the command file is different now. Go to QGC docs to understand how it works now.
-* Support for setting individual Mavlink message rates in the Mavlink Inspector.
+* Introduced a new combined compass and attitude instrument for enhanced navigation.
+* Select between multiple instruments by clicking the instrument control on desktop or pressing and holding on mobile.
+* Updated support for Fly View and Joystick custom MAVLink actions; command file names and formats have changed—refer to QGC docs for details.
+* Added functionality for setting individual MAVLink message rates in the MAVLink Inspector.
+* Enabled support for MAVLink 2 signing.
+* Dynamic battery display that reduces the number of bars based on battery percentage, with configurable states (100%, Config 1, Config 2, Low, Critical) for clearer status indication.
+* Custom Actions changed to Mavlink Actions. The location of the actions json files has changes to the "Mavlink Actions" directory. If you were using the previous "Custom Actions" directory, move you json files to the new location.
+
 
 ## 4.1
 

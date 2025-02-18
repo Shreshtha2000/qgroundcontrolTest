@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -10,6 +10,9 @@
 #pragma once
 
 #include <QtCore/QAbstractListModel>
+#include <QtCore/QByteArray>
+#include <QtCore/QHash>
+#include <QtCore/QObject>
 
 class Fact;
 
@@ -53,6 +56,6 @@ private:
     double  _initialValueAtPrecision;
     double  _increment;
 
-    static const int _valueRole;
-    static const int _valueIndexRole;
+    static constexpr int _valueRole =        Qt::UserRole;
+    static constexpr int _valueIndexRole =   Qt::UserRole + 1;
 };

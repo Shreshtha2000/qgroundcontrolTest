@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2021 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -9,7 +9,6 @@
 
 #include "Actuators.h"
 #include "GeometryImage.h"
-#include "FactSystem.h"
 #include "ParameterManager.h"
 #include "Vehicle.h"
 
@@ -738,11 +737,11 @@ bool Actuators::parseJson(const QJsonDocument &json)
 
 Fact* Actuators::getFact(const QString& paramName)
 {
-    if (!_vehicle->parameterManager()->parameterExists(FactSystem::defaultComponentId, paramName)) {
+    if (!_vehicle->parameterManager()->parameterExists(ParameterManager::defaultComponentId, paramName)) {
         qCDebug(ActuatorsConfigLog) << "Mixer: Param does not exist:" << paramName;
         return nullptr;
     }
-    Fact* fact = _vehicle->parameterManager()->getParameter(FactSystem::defaultComponentId, paramName);
+    Fact* fact = _vehicle->parameterManager()->getParameter(ParameterManager::defaultComponentId, paramName);
 	subscribeFact(fact);
 	return fact;
 }

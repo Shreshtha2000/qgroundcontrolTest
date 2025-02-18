@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -12,18 +12,27 @@
 #include "ParameterManager.h"
 #include "AppSettings.h"
 #include "Vehicle.h"
+#include "QGCLoggingCategory.h"
 
-ParameterEditorController::ParameterEditorController(void)
-    : _parameterMgr(_vehicle->parameterManager())
+QGC_LOGGING_CATEGORY(ParameterEditorControllerLog, "qgc.qmlcontrols.parametereditorcontroller")
+
+ParameterEditorController::ParameterEditorController(QObject *parent)
+    : FactPanelController(parent)
+    , _parameterMgr(_vehicle->parameterManager())
 {
+    // qCDebug(ParameterEditorControllerLog) << Q_FUNC_INFO << this;
+
     _buildLists();
+
+    _searchTimer.setSingleShot(true);
+    _searchTimer.setInterval(300);
 
     connect(this, &ParameterEditorController::currentCategoryChanged,   this, &ParameterEditorController::_currentCategoryChanged);
     connect(this, &ParameterEditorController::currentGroupChanged,      this, &ParameterEditorController::_currentGroupChanged);
     connect(this, &ParameterEditorController::searchTextChanged,        this, &ParameterEditorController::_searchTextChanged);
     connect(this, &ParameterEditorController::showModifiedOnlyChanged,  this, &ParameterEditorController::_searchTextChanged);
-
-    connect(_parameterMgr, &ParameterManager::factAdded, this, &ParameterEditorController::_factAdded);
+    connect(&_searchTimer, &QTimer::timeout,                            this, &ParameterEditorController::_performSearch);
+    connect(_parameterMgr, &ParameterManager::factAdded,                this, &ParameterEditorController::_factAdded);
 
     ParameterEditorCategory* category = _categories.count() ? _categories.value<ParameterEditorCategory*>(0) : nullptr;
     setCurrentCategory(category);
@@ -31,7 +40,7 @@ ParameterEditorController::ParameterEditorController(void)
 
 ParameterEditorController::~ParameterEditorController()
 {
-
+    // qCDebug(ParameterEditorControllerLog) << Q_FUNC_INFO << this;
 }
 
 void ParameterEditorController::_buildListsForComponent(int compId)
@@ -106,7 +115,7 @@ void ParameterEditorController::_buildLists(void)
             if (group->name == FactMetaData::kDefaultGroup) {
                 if (j != _categories.count() - 1) {
                     category->groups.removeAt(j);
-                    category->groups.append(category);
+                    category->groups.append(group);
                 }
                 break;
             }
@@ -364,6 +373,13 @@ bool ParameterEditorController::_shouldShow(Fact* fact) const
 }
 
 void ParameterEditorController::_searchTextChanged(void)
+{
+    if (!_searchTimer.isActive()) {
+        _searchTimer.start();
+    }
+}
+
+void ParameterEditorController::_performSearch(void)
 {
     QObjectList newParameterList;
 

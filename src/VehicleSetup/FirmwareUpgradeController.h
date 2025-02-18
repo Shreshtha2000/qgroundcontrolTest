@@ -1,6 +1,6 @@
 ﻿/****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -37,8 +37,6 @@ public:
         typedef enum {
             AutoPilotStackPX4 = 0,
             AutoPilotStackAPM,
-            PX4FlowPX4,
-            PX4FlowAPM,
             SiKRadio,
             SingleFirmwareMode
         } AutoPilotStackType_t;
@@ -92,7 +90,6 @@ public:
     Q_PROPERTY(QString              boardDescription            READ boardDescription                                               NOTIFY boardFound)
     Q_PROPERTY(QString              boardType                   MEMBER _boardTypeName                                               NOTIFY boardFound)
     Q_PROPERTY(bool                 pixhawkBoard                READ pixhawkBoard                                                   NOTIFY boardFound)
-    Q_PROPERTY(bool                 px4FlowBoard                READ px4FlowBoard                                                   NOTIFY boardFound)
     Q_PROPERTY(FirmwareBuildType_t  selectedFirmwareBuildType   READ selectedFirmwareBuildType  WRITE setSelectedFirmwareBuildType  NOTIFY selectedFirmwareBuildTypeChanged)
     Q_PROPERTY(QStringList          apmFirmwareNames            MEMBER _apmFirmwareNames                                            NOTIFY apmFirmwareNamesChanged)
     Q_PROPERTY(int                  apmFirmwareNamesBestIndex   MEMBER _apmFirmwareNamesBestIndex                                   NOTIFY apmFirmwareNamesChanged)
@@ -146,7 +143,6 @@ public:
     QString     px4BetaVersion  (void) { return _px4BetaVersion; }
 
     bool pixhawkBoard(void) const { return _boardType == QGCSerialPortInfo::BoardTypePixhawk; }
-    bool px4FlowBoard(void) const { return _boardType == QGCSerialPortInfo::BoardTypePX4Flow; }
 
     /**
      * @brief Return a human friendly string of available boards
@@ -191,7 +187,6 @@ private slots:
 private:
     QHash<FirmwareIdentifier, QString>* _firmwareHashForBoardId(int boardId);
     void _getFirmwareFile           (FirmwareIdentifier firmwareId);
-    void _initFirmwareHash          (void);
     void _downloadFirmware          (void);
     void _appendStatusLog           (const QString& text, bool critical = false);
     void _errorCancel               (const QString& msg);
@@ -205,7 +200,6 @@ private:
     QString _portDescription;
 
     // Firmware hashes
-    QHash<FirmwareIdentifier, QString> _rgPX4FLowFirmware;
     QHash<FirmwareIdentifier, QString> _rgSiKRadioFirmware;
 
     // Hash map for ArduPilot ChibiOS lookup by board name
@@ -257,18 +251,18 @@ private:
 
     const QString _apmBoardDescriptionReplaceText;
 
-    static const char* _manifestFirmwareJsonKey;
-    static const char* _manifestBoardIdJsonKey;
-    static const char* _manifestMavTypeJsonKey;
-    static const char* _manifestFormatJsonKey;
-    static const char* _manifestUrlJsonKey;
-    static const char* _manifestMavFirmwareVersionTypeJsonKey;
-    static const char* _manifestUSBIDJsonKey;
-    static const char* _manifestMavFirmwareVersionJsonKey;
-    static const char* _manifestBootloaderStrJsonKey;
-    static const char* _manifestLatestKey;
-    static const char* _manifestPlatformKey;
-    static const char* _manifestBrandNameKey;
+    static constexpr const char* _manifestFirmwareJsonKey =               "firmware";
+    static constexpr const char* _manifestBoardIdJsonKey =                "board_id";
+    static constexpr const char* _manifestMavTypeJsonKey =                "mav-type";
+    static constexpr const char* _manifestFormatJsonKey =                 "format";
+    static constexpr const char* _manifestUrlJsonKey =                    "url";
+    static constexpr const char* _manifestMavFirmwareVersionTypeJsonKey = "mav-firmware-version-type";
+    static constexpr const char* _manifestUSBIDJsonKey =                  "USBID";
+    static constexpr const char* _manifestMavFirmwareVersionJsonKey =     "mav-firmware-version";
+    static constexpr const char* _manifestBootloaderStrJsonKey =          "bootloader_str";
+    static constexpr const char* _manifestLatestKey =                     "latest";
+    static constexpr const char* _manifestPlatformKey =                   "platform";
+    static constexpr const char* _manifestBrandNameKey =                  "brand_name";
 
     typedef struct {
         uint32_t                boardId;

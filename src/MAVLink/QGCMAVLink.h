@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -9,16 +9,20 @@
 
 #pragma once
 
-#include <QtCore/QObject>
-#include <QtCore/QString>
 #include <QtCore/QList>
 #include <QtCore/QLoggingCategory>
+#include <QtCore/QObject>
+#include <QtCore/QString>
 #include <QtQmlIntegration/QtQmlIntegration>
 
 #include "MAVLinkLib.h"
 
 Q_DECLARE_LOGGING_CATEGORY(QGCMAVLinkLog)
+// Q_DECLARE_METATYPE(mavlink_message_t)
+Q_DECLARE_METATYPE(MAV_TYPE)
+Q_DECLARE_METATYPE(MAV_AUTOPILOT)
 
+// TODO: Q_NAMESPACE
 class QGCMAVLink : public QObject
 {
     Q_OBJECT
@@ -27,24 +31,25 @@ class QGCMAVLink : public QObject
 
 public:
     // Creating an instance of QGCMAVLink is only meant to be used for the Qml Singleton
-    QGCMAVLink(QObject* parent = nullptr);
+    QGCMAVLink(QObject *parent = nullptr);
+    ~QGCMAVLink();
 
     typedef int FirmwareClass_t;
     typedef int VehicleClass_t;
 
-    static constexpr FirmwareClass_t FirmwareClassPX4       = MAV_AUTOPILOT_PX4;
-    static constexpr FirmwareClass_t FirmwareClassArduPilot = MAV_AUTOPILOT_ARDUPILOTMEGA;
-    static constexpr FirmwareClass_t FirmwareClassGeneric   = MAV_AUTOPILOT_GENERIC;
+    static constexpr const FirmwareClass_t FirmwareClassPX4       = MAV_AUTOPILOT_PX4;
+    static constexpr const FirmwareClass_t FirmwareClassArduPilot = MAV_AUTOPILOT_ARDUPILOTMEGA;
+    static constexpr const FirmwareClass_t FirmwareClassGeneric   = MAV_AUTOPILOT_GENERIC;
 
-    static constexpr VehicleClass_t VehicleClassAirship     = MAV_TYPE_AIRSHIP;
-    static constexpr VehicleClass_t VehicleClassFixedWing   = MAV_TYPE_FIXED_WING;
-    static constexpr VehicleClass_t VehicleClassRoverBoat   = MAV_TYPE_GROUND_ROVER;
-    static constexpr VehicleClass_t VehicleClassSub         = MAV_TYPE_SUBMARINE;
-    static constexpr VehicleClass_t VehicleClassMultiRotor  = MAV_TYPE_QUADROTOR;
-    static constexpr VehicleClass_t VehicleClassVTOL        = MAV_TYPE_VTOL_TAILSITTER_QUADROTOR;
-    static constexpr VehicleClass_t VehicleClassGeneric     = MAV_TYPE_GENERIC;
+    static constexpr const VehicleClass_t VehicleClassAirship     = MAV_TYPE_AIRSHIP;
+    static constexpr const VehicleClass_t VehicleClassFixedWing   = MAV_TYPE_FIXED_WING;
+    static constexpr const VehicleClass_t VehicleClassRoverBoat   = MAV_TYPE_GROUND_ROVER;
+    static constexpr const VehicleClass_t VehicleClassSub         = MAV_TYPE_SUBMARINE;
+    static constexpr const VehicleClass_t VehicleClassMultiRotor  = MAV_TYPE_QUADROTOR;
+    static constexpr const VehicleClass_t VehicleClassVTOL        = MAV_TYPE_VTOL_TAILSITTER_QUADROTOR;
+    static constexpr const VehicleClass_t VehicleClassGeneric     = MAV_TYPE_GENERIC;
 
-    static constexpr uint8_t        maxRcChannels           = 18; // mavlink_rc_channels_t->chancount
+    static constexpr const uint8_t        maxRcChannels           = 18; // mavlink_rc_channels_t->chancount
 
     static bool                     isPX4FirmwareClass          (MAV_AUTOPILOT autopilot) { return autopilot == MAV_AUTOPILOT_PX4; }
     static bool                     isArduPilotFirmwareClass    (MAV_AUTOPILOT autopilot) { return autopilot == MAV_AUTOPILOT_ARDUPILOTMEGA; }
@@ -152,4 +157,10 @@ public:
         CalibrationAPMAccelSimple,
     };
     Q_ENUM(CalibrationType)
+
+    static bool isValidChannel(uint8_t channel) { return (channel < MAVLINK_COMM_NUM_BUFFERS); }
+    static bool isValidChannel(mavlink_channel_t channel) { return isValidChannel(static_cast<uint8_t>(channel)); }
+
+    static mavlink_status_t* getChannelStatus(mavlink_channel_t channel) { return mavlink_get_channel_status(static_cast<uint8_t>(channel)); }
 };
+Q_DECLARE_METATYPE(GRIPPER_ACTIONS)

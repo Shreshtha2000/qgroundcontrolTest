@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -40,31 +40,14 @@
 
 QGC_LOGGING_CATEGORY(MissionControllerLog, "MissionControllerLog")
 
-const char* MissionController::_settingsGroup =                 "MissionController";
-const char* MissionController::_jsonFileTypeValue =             "Mission";
-const char* MissionController::_jsonItemsKey =                  "items";
-const char* MissionController::_jsonPlannedHomePositionKey =    "plannedHomePosition";
-const char* MissionController::_jsonFirmwareTypeKey =           "firmwareType";
-const char* MissionController::_jsonVehicleTypeKey =            "vehicleType";
-const char* MissionController::_jsonCruiseSpeedKey =            "cruiseSpeed";
-const char* MissionController::_jsonHoverSpeedKey =             "hoverSpeed";
-const char* MissionController::_jsonParamsKey =                 "params";
-const char* MissionController::_jsonGlobalPlanAltitudeModeKey = "globalPlanAltitudeMode";
-
-// Deprecated V1 format keys
-const char* MissionController::_jsonComplexItemsKey =           "complexItems";
-const char* MissionController::_jsonMavAutopilotKey =           "MAV_AUTOPILOT";
-
-const int   MissionController::_missionFileVersion =            2;
-
 MissionController::MissionController(PlanMasterController* masterController, QObject *parent)
     : PlanElementController (masterController, parent)
     , _controllerVehicle    (masterController->controllerVehicle())
     , _managerVehicle       (masterController->managerVehicle())
     , _missionManager       (masterController->managerVehicle()->missionManager())
     , _visualItems          (new QmlObjectListModel(this))
-    , _planViewSettings     (qgcApp()->toolbox()->settingsManager()->planViewSettings())
-    , _appSettings          (qgcApp()->toolbox()->settingsManager()->appSettings())
+    , _planViewSettings     (SettingsManager::instance()->planViewSettings())
+    , _appSettings          (SettingsManager::instance()->appSettings())
 {
     _resetMissionFlightStatus();
 
@@ -114,7 +97,7 @@ void MissionController::_resetMissionFlightStatus(void)
 
     _controllerVehicle->firmwarePlugin()->batteryConsumptionData(_controllerVehicle, _missionFlightStatus.mAhBattery, _missionFlightStatus.hoverAmps, _missionFlightStatus.cruiseAmps);
     if (_missionFlightStatus.mAhBattery != 0) {
-        double batteryPercentRemainingAnnounce = qgcApp()->toolbox()->settingsManager()->appSettings()->batteryPercentRemainingAnnounce()->rawValue().toDouble();
+        double batteryPercentRemainingAnnounce = SettingsManager::instance()->appSettings()->batteryPercentRemainingAnnounce()->rawValue().toDouble();
         _missionFlightStatus.ampMinutesAvailable = static_cast<double>(_missionFlightStatus.mAhBattery) / 1000.0 * 60.0 * ((100.0 - batteryPercentRemainingAnnounce) / 100.0);
     }
 
@@ -323,7 +306,7 @@ VisualMissionItem* MissionController::_insertSimpleMissionItemWorker(QGeoCoordin
     _initVisualItem(newItem);
 
     if (newItem->specifiesAltitude()) {
-        if (!qgcApp()->toolbox()->missionCommandTree()->isLandCommand(command)) {
+        if (!MissionCommandTree::instance()->isLandCommand(command)) {
             double                              prevAltitude;
             QGroundControlQmlGlobal::AltMode    prevAltMode;
 
@@ -742,7 +725,7 @@ bool MissionController::_loadJsonMissionFileV2(const QJsonObject& json, QmlObjec
 
     qCDebug(MissionControllerLog) << "MissionController::_loadJsonMissionFileV2 itemCount:" << json[_jsonItemsKey].toArray().count();
 
-    AppSettings* appSettings = qgcApp()->toolbox()->settingsManager()->appSettings();
+    AppSettings* appSettings = SettingsManager::instance()->appSettings();
 
     // Get the firmware/vehicle type from the plan file
     MAV_AUTOPILOT   planFileFirmwareType =  static_cast<MAV_AUTOPILOT>(json[_jsonFirmwareTypeKey].toInt());
@@ -1387,7 +1370,6 @@ void MissionController::_recalcFlightPathSegments(void)
                             _splitSegment = segment;
                             _delayedSplitSegmentUpdate = false;
                             signalSplitSegmentChanged = true;
-                            qDebug() << "Update delayed split segment";
                         }
                         lastFlyThroughVI->setSimpleFlighPathSegment(segment);
                     }
@@ -2268,7 +2250,7 @@ QStringList MissionController::complexMissionItemNames(void) const
 
     // Note: The landing pattern items are not added here since they have there own button which adds them
 
-    return qgcApp()->toolbox()->corePlugin()->complexMissionItemNames(_controllerVehicle, complexItems);
+    return QGCCorePlugin::instance()->complexMissionItemNames(_controllerVehicle, complexItems);
 }
 
 void MissionController::resumeMission(int resumeIndex)
@@ -2478,7 +2460,6 @@ void MissionController::setCurrentPlanViewSeqNum(int sequenceNumber, bool force)
                                 } else {
                                     // The recalc of flight path segments hasn't happened yet since it is delayed and compressed.
                                     // So we need to register the fact that we need a split segment update and it will happen in the recalc instead.
-                                    qDebug() << "Delayed split";
                                     _delayedSplitSegmentUpdate = true;
                                 }
                                 break;
@@ -2490,6 +2471,8 @@ void MissionController::setCurrentPlanViewSeqNum(int sequenceNumber, bool force)
                 }
             } else {
                 pVI->setIsCurrentItem(false);
+                // Child items will always be later in the mission sequence, so this should be correct, to be sure the HasCurrentChildItem is cleared
+                pVI->setHasCurrentChildItem(false);
             }
         }
 

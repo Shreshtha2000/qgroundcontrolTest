@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -28,6 +28,45 @@ class Autotune;
 class LinkInterface;
 class FactGroup;
 
+
+struct FirmwareFlightMode
+{
+    QString     mode_name       = "Unknown";
+    uint8_t     standard_mode   = UINT8_MAX;
+    uint32_t    custom_mode     = UINT32_MAX;
+    bool        canBeSet        = false;
+    bool        advanced        = false;
+    bool        fixedWing       = false;
+    bool        multiRotor      = true;
+
+    FirmwareFlightMode(QString mName, uint32_t cMode, bool cbs = false, bool adv = false)
+        : mode_name     (mName)
+        , standard_mode (0)
+        , custom_mode   (cMode)
+        , canBeSet      (cbs)
+        , advanced      (adv)
+        , fixedWing     (false)
+        , multiRotor    (true)
+    {
+    }
+
+    FirmwareFlightMode(QString mName, uint8_t sMode, uint32_t cMode,
+                       bool cbs = false, bool adv = false,
+                       bool fWing = false, bool mRotor = true
+    )
+        : mode_name     (mName)
+        , standard_mode (sMode)
+        , custom_mode   (cMode)
+        , canBeSet      (cbs)
+        , advanced      (adv)
+        , fixedWing     (fWing)
+        , multiRotor    (mRotor)
+    {
+    }
+};
+
+typedef QList<FirmwareFlightMode>         FlightModeList;
+typedef QMap<uint32_t,QString>            FlightModeCustomModeMap;
 /// This is the base class for Firmware specific plugins
 ///
 /// The FirmwarePlugin class represents the methods and objects which are specific to a certain Firmware flight stack.
@@ -50,6 +89,7 @@ public:
         OrbitModeCapability =               1 << 3, ///< Vehicle supports orbit mode
         TakeoffVehicleCapability =          1 << 4, ///< Vehicle supports guided takeoff
         ROIModeCapability =                 1 << 5, ///< Vehicle supports ROI (both in Fly guided mode and from Plan creation)
+        ChangeHeadingCapability =           1 << 6, ///< Vehicle supports changing heading at current location
     } FirmwareCapabilities;
 
     /// Maps from on parameter name to another
@@ -76,9 +116,9 @@ public:
     /// @return true: Firmware supports all specified capabilites
     virtual bool isCapable(const Vehicle *vehicle, FirmwareCapabilities capabilities);
 
-    /// Returns VehicleComponents for specified Vehicle
+    /// Returns ComponentInformation for specified Vehicle
     ///     @param vehicle Vehicle  to associate with components
-    /// @return List of VehicleComponents for the specified vehicle. Caller owns returned objects and must
+    /// @return List of ComponentInformation for the specified vehicle. Caller owns returned objects and must
     ///         free when no longer needed.
     virtual QList<VehicleComponent*> componentsForVehicle(AutoPilotPlugin* vehicle);
 
@@ -116,6 +156,15 @@ public:
     /// Returns the flight mode for Land
     virtual QString landFlightMode(void) const { return QString(); }
 
+    /// Returns the flight mode for TakeOff
+    virtual QString takeOffFlightMode(void) const { return QString(); }
+
+    /// Returns the flight mode for Motor Detection
+    virtual QString motorDetectionFlightMode(void) const { return QString(); }
+
+    /// Returns the flight mode for Stabilized
+    virtual QString stabilizedFlightMode(void) const { return QString(); }
+
     /// Returns the flight mode to use when the operator wants to take back control from autonomouse flight.
     virtual QString takeControlFlightMode(void) const { return QString(); }
 
@@ -144,8 +193,11 @@ public:
     /// Command vehicle to takeoff from current location to a firmware specific height.
     virtual void guidedModeTakeoff(Vehicle* vehicle, double takeoffAltRel);
 
+    /// Command vehicle to rotate towards specified location.
+    virtual void guidedModeChangeHeading(Vehicle *vehicle, const QGeoCoordinate &headingCoord);
+
     /// @return The minimum takeoff altitude (relative) for guided takeoff.
-    virtual double minimumTakeoffAltitude(Vehicle* /*vehicle*/) { return 10; }
+    virtual double minimumTakeoffAltitudeMeters(Vehicle* /*vehicle*/) { return 3.048; }
 
     /// @return The maximum horizontal groundspeed for a multirotor.
     virtual double maximumHorizontalSpeedMultirotor(Vehicle* /*vehicle*/) { return NAN; }
@@ -257,7 +309,7 @@ public:
     virtual FactMetaData* _getMetaDataForFact(QObject* /*parameterMetaData*/, const QString& /*name*/, FactMetaData::ValueType_t /* type */, MAV_TYPE /*vehicleType*/) { return nullptr; }
 
     /// List of supported mission commands. Empty list for all commands supported.
-    virtual QList<MAV_CMD> supportedMissionCommands(QGCMAVLink::VehicleClass_t vehicleClass);
+    virtual QList<MAV_CMD> supportedMissionCommands(QGCMAVLink::VehicleClass_t vehicleClass) const;
 
     /// Returns the name of the mission command json override file for the specified vehicle type.
     ///     @param vehicleClass Vehicle class to return file for, VehicleClassGeneric is a request for overrides for all vehicle types
@@ -303,10 +355,6 @@ public:
     /// @return A list of QUrl with the indicators
     virtual const QVariantList& modeIndicators(const Vehicle* vehicle);
 
-    /// Returns a list of CameraMetaData objects for available cameras on the vehicle.
-    /// TODO: This should go into QGCCameraManager
-    virtual const QVariantList& cameraList(const Vehicle* vehicle);
-
     /// Creates vehicle camera manager.
     virtual QGCCameraManager* createCameraManager(Vehicle *vehicle);
 
@@ -349,16 +397,16 @@ public:
     virtual void adjustMetaData(MAV_TYPE /*vehicleType*/, FactMetaData* /*metaData*/) {}
 
     /// Sends the appropriate mavlink message for follow me support
-    virtual void sendGCSMotionReport(Vehicle* vehicle, FollowMe::GCSMotionReport& motionReport, uint8_t estimatationCapabilities);
-
-    // FIXME: Hack workaround for non pluginize FollowMe support
-    static const QString px4FollowMeFlightMode;
+    virtual void sendGCSMotionReport(Vehicle *vehicle, FollowMe::GCSMotionReport &motionReport, uint8_t estimationCapabilities);
 
     // gets hobbs meter from autopilot. This should be reimplmeented for each firmware
     virtual QString getHobbsMeter(Vehicle* vehicle) { Q_UNUSED(vehicle); return "Not Supported"; }
 
     /// Creates Autotune object.
     virtual Autotune* createAutotune(Vehicle *vehicle);
+
+    /// Update Available flight modes recieved from vehicle
+    virtual void updateAvailableFlightModes(FlightModeList modeList);
 
 signals:
     void toolIndicatorsChanged(void);
@@ -382,9 +430,58 @@ protected:
     // Returns regex QString to extract version information from text
     virtual QString _versionRegex() { return QString(); }
 
+    // Set Custom Mode mapping to Flight Mode String
+    void             _setModeEnumToModeStringMapping(FlightModeCustomModeMap enumToString);
+
+    // Convert Base enum to Derived class Enums
+    virtual uint32_t _convertToCustomFlightModeEnum(uint32_t val) const { return val;}
+
+    // Update internal mappings for a list of flight modes
+    void             _updateModeMappings(FlightModeList &modeList);
+    void             _addNewFlightMode  (FirmwareFlightMode &mode);
+
+    FlightModeList              _availableFlightModeList;
+    FlightModeCustomModeMap     _modeEnumToString;
+
 protected:
     QVariantList _toolIndicatorList;
     QVariantList _modeIndicatorList;
+};
 
-    static QVariantList _cameraList;    ///< Standard QGC camera list
+class FirmwarePluginInstanceData : public QObject
+{
+    Q_OBJECT
+
+public:
+
+    using QObject::QObject;
+
+    // support for detecting whether the firmware a vehicle is running
+    // supports a given MAV_CMD:
+    enum class CommandSupportedResult : uint8_t {
+        SUPPORTED = 23,
+        UNSUPPORTED = 24,
+        UNKNOWN = 25,
+    };
+    // anyVersionSupportsCommand returns true if any version of the
+    // firmware has supported cmd.  Used so that extra round-trips to
+    // the autopilot to probe for command support are not required.
+    virtual CommandSupportedResult anyVersionSupportsCommand(MAV_CMD cmd) const {
+        return CommandSupportedResult::UNKNOWN;
+    }
+
+    // support for detecting whether the firmware a vehicle is running
+    // supports a given MAV_CMD:
+    void setCommandSupported(MAV_CMD cmd, CommandSupportedResult status) {
+        MAV_CMD_supported[cmd] = status;
+    }
+    CommandSupportedResult getCommandSupported(MAV_CMD cmd) const {
+        if (anyVersionSupportsCommand(cmd) == CommandSupportedResult::UNSUPPORTED) {
+            return CommandSupportedResult::UNSUPPORTED;
+        }
+        return MAV_CMD_supported.value(cmd, CommandSupportedResult::UNKNOWN);
+    }
+
+private:
+    QMap<MAV_CMD, CommandSupportedResult> MAV_CMD_supported;
 };

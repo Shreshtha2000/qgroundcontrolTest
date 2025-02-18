@@ -1,6 +1,15 @@
+/****************************************************************************
+ *
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ *
+ * QGroundControl is licensed according to the terms in the file
+ * COPYING.md in the root of the source code directory.
+ *
+ ****************************************************************************/
+
 #include "OsmParser.h"
-#include "QGCApplication.h"
 #include "SettingsManager.h"
+#include "Viewer3DSettings.h"
 #include "OsmParserThread.h"
 #include "earcut.hpp"
 
@@ -27,7 +36,7 @@ OsmParser::OsmParser(QObject *parent)
     _doubleStoreyLeisure.append("sports_hall");
     _doubleStoreyLeisure.append("sauna");
 
-    _viewer3DSettings = qgcApp()->toolbox()->settingsManager()->viewer3DSettings();
+    _viewer3DSettings = SettingsManager::instance()->viewer3DSettings();
 
     _gpsRefSet = false;
     _mapLoadedFlag = false;

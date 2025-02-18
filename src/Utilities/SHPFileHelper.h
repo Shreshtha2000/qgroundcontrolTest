@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -31,5 +31,5 @@ private:
     static bool         _validateSHPFiles(const QString& shpFile, int* utmZone, bool* utmSouthernHemisphere, QString& errorString);
     static SHPHandle    _loadShape(const QString& shpFile, int* utmZone, bool* utmSouthernHemisphere, QString& errorString);
 
-    static const char* _errorPrefix;
+    static constexpr const char* _errorPrefix = QT_TR_NOOP("SHP file load failed. %1");
 };

@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -15,9 +15,6 @@
 
 #include <QtCore/QDebug>
 #include <QtQml/QQmlEngine>
-
-const int QmlObjectListModel::ObjectRole = Qt::UserRole;
-const int QmlObjectListModel::TextRole = Qt::UserRole + 1;
 
 QmlObjectListModel::QmlObjectListModel(QObject* parent)
     : QAbstractListModel        (parent)
@@ -293,12 +290,10 @@ void QmlObjectListModel::deleteListAndContents()
 
 void QmlObjectListModel::clearAndDeleteContents()
 {
-    beginResetModel();
     for (int i=0; i<_objectList.count(); i++) {
         _objectList[i]->deleteLater();
     }
     clear();
-    endResetModel();
 }
 
 void QmlObjectListModel::beginReset()

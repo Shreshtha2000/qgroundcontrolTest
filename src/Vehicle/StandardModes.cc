@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2022 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -55,9 +55,6 @@ void StandardModes::gotMessage(MAV_RESULT result, const mavlink_message_t &messa
             case MAV_STANDARD_MODE_ALTITUDE_HOLD:
                 name = "Altitude";
                 break;
-            case MAV_STANDARD_MODE_RETURN_HOME:
-                name = "Return";
-                break;
             case MAV_STANDARD_MODE_SAFE_RECOVERY:
                 name = "Safe Recovery";
                 break;
@@ -80,6 +77,16 @@ void StandardModes::gotMessage(MAV_RESULT result, const mavlink_message_t &messa
 
         _nextModes[availableModes.custom_mode] = Mode{name, availableModes.standard_mode, advanced, cannotBeSet};
 
+        _modeList += FirmwareFlightMode{
+            name,
+            availableModes.standard_mode,
+            availableModes.custom_mode,
+            !cannotBeSet,
+            advanced,
+            false,
+            false
+        };
+
         if (availableModes.mode_index >= availableModes.number_modes) { // We are done
             qCDebug(StandardModesLog) << "Completed, num modes:" << _nextModes.size();
             _modes = _nextModes;
@@ -87,6 +94,7 @@ void StandardModes::gotMessage(MAV_RESULT result, const mavlink_message_t &messa
             _hasModes = true;
             emit modesUpdated();
             emit requestCompleted();
+            _vehicle->firmwarePlugin()->updateAvailableFlightModes(_modeList);
 
         } else {
             requestMode(availableModes.mode_index + 1);
@@ -115,7 +123,6 @@ void StandardModes::ensureUniqueModeNames()
 
 void StandardModes::request()
 {
-#ifdef DAILY_BUILD // Disable use of development/WIP MAVLink messages for release builds
     if (_requestActive) {
         // If we are in the middle of waiting for a request, wait for the response first
         _wantReset = true;
@@ -127,9 +134,6 @@ void StandardModes::request()
     qCDebug(StandardModesLog) << "Requesting available modes";
     // Request one at a time. This could be improved by requesting all, but we can't use Vehicle::requestMessage for that
     StandardModes::requestMode(1);
-#else
-    emit requestCompleted();
-#endif // DAILY_BUILD
 }
 
 void StandardModes::requestMode(int modeIndex)

@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -10,13 +10,12 @@
 
 #include "APMRadioComponent.h"
 #include "ParameterManager.h"
-#include "FactSystem.h"
 #include "Fact.h"
 #include "Vehicle.h"
 
-APMRadioComponent::APMRadioComponent(Vehicle* vehicle, AutoPilotPlugin* autopilot, QObject* parent) :
-    VehicleComponent(vehicle, autopilot, parent),
-    _name(tr("Radio"))
+APMRadioComponent::APMRadioComponent(Vehicle* vehicle, AutoPilotPlugin* autopilot, QObject* parent)
+    : VehicleComponent(vehicle, autopilot, AutoPilotPlugin::KnownRadioVehicleComponent, parent)
+    , _name(tr("Radio"))
 {
     _mapParams << QStringLiteral("RCMAP_ROLL") << QStringLiteral("RCMAP_PITCH") << QStringLiteral("RCMAP_YAW") << QStringLiteral("RCMAP_THROTTLE");
 
@@ -58,7 +57,7 @@ bool APMRadioComponent::setupComplete(void) const
 
     // First check for all attitude controls mapped
     for (int i=0; i<_mapParams.count(); i++) {
-        mapValues << _vehicle->parameterManager()->getParameter(FactSystem::defaultComponentId, _mapParams[i])->rawValue().toInt();
+        mapValues << _vehicle->parameterManager()->getParameter(ParameterManager::defaultComponentId, _mapParams[i])->rawValue().toInt();
         if (mapValues[i] <= 0) {
             return false;
         }
@@ -107,7 +106,7 @@ void APMRadioComponent::_connectSetupTriggers(void)
 
     // Get the channels for attitude controls and connect to those values for triggers
     foreach (const QString& mapParam, _mapParams) {
-        int channel = _vehicle->parameterManager()->getParameter(FactSystem::defaultComponentId, mapParam)->rawValue().toInt();
+        int channel = _vehicle->parameterManager()->getParameter(ParameterManager::defaultComponentId, mapParam)->rawValue().toInt();
 
         Fact* fact = _vehicle->parameterManager()->getParameter(-1, QStringLiteral("RC%1_MIN").arg(channel));
         _triggerFacts << fact;

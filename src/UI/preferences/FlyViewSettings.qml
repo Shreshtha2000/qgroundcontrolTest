@@ -25,23 +25,25 @@ import QGroundControl.Controllers
 SettingsPage {
     property var    _settingsManager:                   QGroundControl.settingsManager
     property var    _flyViewSettings:                   _settingsManager.flyViewSettings
-    property var    _customMavlinkActionsSettings:      _settingsManager.customMavlinkActionsSettings
+    property var    _mavlinkActionsSettings:            _settingsManager.mavlinkActionsSettings
     property Fact   _virtualJoystick:                   _settingsManager.appSettings.virtualJoystick
     property Fact   _virtualJoystickAutoCenterThrottle: _settingsManager.appSettings.virtualJoystickAutoCenterThrottle
+    property Fact   _enableMultiVehiclePanel:           _settingsManager.appSettings.enableMultiVehiclePanel
     property Fact   _showAdditionalIndicatorsCompass:   _flyViewSettings.showAdditionalIndicatorsCompass
     property Fact   _lockNoseUpCompass:                 _flyViewSettings.lockNoseUpCompass
     property Fact   _guidedMinimumAltitude:             _flyViewSettings.guidedMinimumAltitude
     property Fact   _guidedMaximumAltitude:             _flyViewSettings.guidedMaximumAltitude
     property Fact   _maxGoToLocationDistance:           _flyViewSettings.maxGoToLocationDistance
-    property Fact   _viewer3DEnabled:                   _settingsManager.viewer3DSettings.enabled
-    property Fact   _viewer3DOsmFilePath:               _settingsManager.viewer3DSettings.osmFilePath
-    property Fact   _viewer3DBuildingLevelHeight:       _settingsManager.viewer3DSettings.buildingLevelHeight
-    property Fact   _viewer3DAltitudeBias:              _settingsManager.viewer3DSettings.altitudeBias
+    property var    _viewer3DSettings:                  _settingsManager.viewer3DSettings
+    property Fact   _viewer3DEnabled:                   _viewer3DSettings.enabled
+    property Fact   _viewer3DOsmFilePath:               _viewer3DSettings.osmFilePath
+    property Fact   _viewer3DBuildingLevelHeight:       _viewer3DSettings.buildingLevelHeight
+    property Fact   _viewer3DAltitudeBias:              _viewer3DSettings.altitudeBias
 
     QGCFileDialogController { id: fileController }
 
-    function customActionList() {
-        var fileModel = fileController.getFiles(_settingsManager.appSettings.customActionsSavePath, "*.json")
+    function mavlinkActionList() {
+        var fileModel = fileController.getFiles(_settingsManager.appSettings.mavlinkActionsSavePath, "*.json")
         fileModel.unshift(qsTr("<None>"))
         return fileModel
     }
@@ -66,6 +68,13 @@ SettingsPage {
             enabled:            _settingsManager.appSettings.useChecklist.value
             visible:            useCheckList.visible && _enforceChecklist.visible
             property Fact _enforceChecklist: _settingsManager.appSettings.enforceChecklist
+        }
+
+        FactCheckBoxSlider {
+            Layout.fillWidth:   true
+            text:               qsTr("Enable Multi-Vehicle Panel")
+            fact:               _enableMultiVehiclePanel
+            visible:            _enableMultiVehiclePanel.visible
         }
 
         FactCheckBoxSlider {
@@ -132,29 +141,31 @@ SettingsPage {
     SettingsGroupLayout {
         Layout.fillWidth:       true
         Layout.preferredWidth:  ScreenTools.defaultFontPixelWidth * 35
-        heading:                qsTr("Custom MAVLink Actions")
-        headingDescription:     qsTr("Custom action JSON files should be created in the '%1' folder.").arg(QGroundControl.settingsManager.appSettings.customActionsSavePath)
+        heading:                qsTr("MAVLink Actions")
+        headingDescription:     qsTr("Action JSON files should be created in the '%1' folder.").arg(QGroundControl.settingsManager.appSettings.mavlinkActionsSavePath)
 
         LabelledComboBox {
             Layout.fillWidth:   true
-            label:              qsTr("Fly View Custom Actions")
-            model:              customActionList()
-            onActivated:        (index) => index == 0 ? _customMavlinkActionsSettings.flyViewActionsFile.rawValue = "" : _customMavlinkActionsSettings.flyViewActionsFile.rawValue = comboBox.currentText
+            label:              qsTr("Fly View Actions")
+            model:              mavlinkActionList()
+            onActivated:        (index) => index == 0 ? _mavlinkActionsSettings.flyViewActionsFile.rawValue = "" : _mavlinkActionsSettings.flyViewActionsFile.rawValue = comboBox.currentText
+            enabled:            model.length > 1
 
             Component.onCompleted: {
-                var index = comboBox.find(_customMavlinkActionsSettings.flyViewActionsFile.valueString)
+                var index = comboBox.find(_mavlinkActionsSettings.flyViewActionsFile.valueString)
                 comboBox.currentIndex = index == -1 ? 0 : index
             }
         }
 
         LabelledComboBox {
             Layout.fillWidth:   true
-            label:              qsTr("Joystick Custom Actions")
-            model:              customActionList()
-            onActivated:        (index) => index == 0 ? _customMavlinkActionsSettings.joystickActionsFile.rawValue = "" : _customMavlinkActionsSettings.joystickActionsFile.rawValue = comboBox.currentText
+            label:              qsTr("Joystick Actions")
+            model:              mavlinkActionList()
+            onActivated:        (index) => index == 0 ? _mavlinkActionsSettings.joystickActionsFile.rawValue = "" : _mavlinkActionsSettings.joystickActionsFile.rawValue = comboBox.currentText
+            enabled:            model.length > 1
 
             Component.onCompleted: {
-                var index = comboBox.find(_customMavlinkActionsSettings.joystickActionsFile.valueString)
+                var index = comboBox.find(_mavlinkActionsSettings.joystickActionsFile.valueString)
                 comboBox.currentIndex = index == -1 ? 0 : index
             }
         }
@@ -204,25 +215,29 @@ SettingsPage {
     SettingsGroupLayout {
         Layout.fillWidth:   true
         heading:            qsTr("3D View")
+        visible:            _viewer3DSettings.visible
 
         FactCheckBoxSlider {
             Layout.fillWidth:   true
             text:               qsTr("Enabled")
             fact:               _viewer3DEnabled
+            visible:            _viewer3DEnabled.visible
         }
+
         ColumnLayout{
             Layout.fillWidth:   true
-            spacing: ScreenTools.defaultFontPixelWidth
+            spacing:            ScreenTools.defaultFontPixelWidth
             enabled:            _viewer3DEnabled.rawValue
+            visible:            _viewer3DOsmFilePath.rawValue
 
             RowLayout{
                 Layout.fillWidth:   true
-                spacing: ScreenTools.defaultFontPixelWidth
+                spacing:            ScreenTools.defaultFontPixelWidth
 
                 QGCLabel {
-                    wrapMode:           Text.WordWrap
-                    visible:            true
-                    text: qsTr("3D Map File:")
+                    wrapMode:   Text.WordWrap
+                    visible:    true
+                    text:       qsTr("3D Map File:")
                 }
 
                 QGCTextField {
@@ -232,16 +247,17 @@ SettingsPage {
                     showUnits:          false
                     visible:            true
                     Layout.fillWidth:   true
-                    readOnly: true
-                    text: _viewer3DOsmFilePath.rawValue
+                    readOnly:           true
+                    text:               _viewer3DOsmFilePath.rawValue
                 }
             }
+
             RowLayout{
-                Layout.alignment: Qt.AlignRight
-                spacing: ScreenTools.defaultFontPixelWidth
+                Layout.alignment:   Qt.AlignRight
+                spacing:            ScreenTools.defaultFontPixelWidth
 
                 QGCButton {
-                    text:       qsTr("Clear")
+                    text: qsTr("Clear")
 
                     onClicked: {
                         osmFileTextField.text = "Please select an OSM file"
@@ -250,7 +266,7 @@ SettingsPage {
                 }
 
                 QGCButton {
-                    text:       qsTr("Select File")
+                    text: qsTr("Select File")
 
                     onClicked: {
                         var filename = _viewer3DOsmFilePath.rawValue;
@@ -270,7 +286,7 @@ SettingsPage {
                         onAcceptedForLoad: (file) => {
                                                osmFileTextField.text = file
                                                _viewer3DOsmFilePath.value = osmFileTextField.text
-                                           }
+                        }
                     }
                 }
             }
@@ -281,6 +297,7 @@ SettingsPage {
             label:              qsTr("Average Building Level Height")
             fact:               _viewer3DBuildingLevelHeight
             enabled:            _viewer3DEnabled.rawValue
+            visible:            _viewer3DBuildingLevelHeight.visible
         }
 
         LabelledFactTextField {
@@ -288,6 +305,7 @@ SettingsPage {
             label:              qsTr("Vehicles Altitude Bias")
             fact:               _viewer3DAltitudeBias
             enabled:            _viewer3DEnabled.rawValue
+            visible:            _viewer3DAltitudeBias.visible
         }
     }
 }

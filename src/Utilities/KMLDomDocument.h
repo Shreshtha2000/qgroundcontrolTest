@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -31,7 +31,7 @@ public:
     QString     kmlCoordString      (const QGeoCoordinate& coord);
     void        addLookAt           (QDomElement& parentElement, const QGeoCoordinate& coord);
 
-    static const char* balloonStyleName;
+    static constexpr const char* balloonStyleName = "BalloonStyle";
 
 protected:
     QDomElement _rootDocumentElement;

@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -102,7 +102,7 @@ public:
     void setTraceMode   (bool traceMode);
     void selectVertex   (int index);
 
-    static const char* jsonPolylineKey;
+    static constexpr const char* jsonPolylineKey = "polyline";
 
 signals:
     void countChanged       (int count);

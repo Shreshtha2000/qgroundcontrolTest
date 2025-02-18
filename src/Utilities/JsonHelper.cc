@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -20,13 +20,6 @@
 #include <QtCore/QFileInfo>
 #include <QtCore/QTranslator>
 #include <QtCore/qapplicationstatic.h>
-
-const char* JsonHelper::jsonVersionKey                      = "version";
-const char* JsonHelper::jsonGroundStationKey                = "groundStation";
-const char* JsonHelper::jsonGroundStationValue              = "QGroundControl";
-const char* JsonHelper::jsonFileTypeKey                     = "fileType";
-const char* JsonHelper::_translateKeysKey                   = "translateKeys";
-const char* JsonHelper::_arrayIDKeysKey                     = "_arrayIDKeys";
 
 Q_APPLICATION_STATIC(QTranslator, s_jsonTranslator);
 

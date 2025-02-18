@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -80,8 +80,8 @@ private:
     static const int        _cSimpleModeBits =  8;
     static const int        _cFltModes =        6;
 
-    static const char*      _simpleParamName;
-    static const char*      _superSimpleParamName;
+    static constexpr const char*      _simpleParamName = "SIMPLE";
+    static constexpr const char*      _superSimpleParamName = "SUPER_SIMPLE";
 
     static bool _typeRegistered;
 };

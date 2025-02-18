@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -80,8 +80,7 @@ public:
     void            setRangeIcons           (const QVariantList& rangeIcons);
     void            setRangeOpacities       (const QVariantList& rangeOpacities);
 
-
-    static const char*  vehicleFactGroupName;
+    static constexpr const char*  vehicleFactGroupName =   "Vehicle";
 
 signals:
     void factChanged            (Fact* fact);

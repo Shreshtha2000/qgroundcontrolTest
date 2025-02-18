@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2022 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -9,8 +9,10 @@
 
 #pragma once
 
-#include "QGCMAVLink.h"
+#include "FirmwarePlugin.h"
+#include "MAVLinkLib.h"
 
+#include <QtCore/QObject>
 #include <QtCore/QString>
 #include <QtCore/QMap>
 #include <QtCore/QLoggingCategory>
@@ -66,5 +68,6 @@ private:
     int _lastSeq{-1};
 
     QMap<uint32_t, Mode> _modes; ///< key is custom_mode
+    FlightModeList       _modeList;
 };
 

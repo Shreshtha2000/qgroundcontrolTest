@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -128,7 +128,7 @@ void VehicleBatteryFactGroup::_handleBatteryStatus(Vehicle* vehicle, mavlink_mes
         }
     }
     for (int i=0; i<4; i++) {
-        double cellVoltage = batteryStatus.voltages_ext[i] == UINT16_MAX ? qQNaN() : static_cast<double>(batteryStatus.voltages_ext[i]) / 1000.0;
+        double cellVoltage = batteryStatus.voltages_ext[i] == 0 ? qQNaN() : static_cast<double>(batteryStatus.voltages_ext[i]) / 1000.0;
         if (qIsNaN(cellVoltage)) {
             break;
         }

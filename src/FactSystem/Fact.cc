@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -13,8 +13,6 @@
 #include "QGCCorePlugin.h"
 
 #include <QtQml/QQmlEngine>
-
-static const char* kMissingMetadata = "Meta data pointer missing";
 
 Fact::Fact(QObject* parent)
     : QObject                   (parent)
@@ -63,7 +61,7 @@ Fact::Fact(const QString& settingsGroup, FactMetaData* metaData, QObject* parent
     , _valueSliderModel         (nullptr)
     , _ignoreQGCRebootRequired  (false)
 {
-    qgcApp()->toolbox()->corePlugin()->adjustSettingMetaData(settingsGroup, *metaData);
+    QGCCorePlugin::instance()->adjustSettingMetaData(settingsGroup, *metaData);
     setMetaData(metaData, true /* setDefaultFromMetaData */);
 
     _init();

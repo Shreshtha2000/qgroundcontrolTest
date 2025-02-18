@@ -1,38 +1,58 @@
 find_package(Qt6 REQUIRED COMPONENTS Core)
 
 qt_add_library(Compression STATIC
-	QGCLZMA.cc
-	QGCLZMA.h
-	QGCZlib.cc
-	QGCZlib.h
+    QGCLZMA.cc
+    QGCLZMA.h
+    QGCZip.cc
+    QGCZip.h
+    QGCZlib.cc
+    QGCZlib.h
 )
 
-include(FetchContent)
-
-############### ZLIB
-
-set(ZLIB_BUILD_EXAMPLES OFF CACHE INTERNAL "")
-set(BUILD_SHARED_LIBS OFF CACHE INTERNAL "")
-set(SKIP_INSTALL_FILES ON CACHE INTERNAL "")
-set(SKIP_INSTALL_LIBRARIES ON CACHE INTERNAL "")
-set(SKIP_INSTALL_HEADERS ON CACHE INTERNAL "")
-set(SKIP_INSTALL_ALL ON CACHE INTERNAL "")
-
-FetchContent_Declare(zlib
-	GIT_REPOSITORY https://github.com/madler/zlib.git
-	GIT_TAG v1.3.1
-	GIT_SHALLOW TRUE
+target_link_libraries(Compression
+    PRIVATE
+        Qt6::CorePrivate
+        Utilities
+    PUBLIC
+        Qt6::Core
 )
 
-############### XZ
+target_include_directories(Compression PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
 
-FetchContent_Declare(xz-embedded
-    GIT_REPOSITORY https://github.com/tukaani-project/xz-embedded.git
-    GIT_TAG v2024-04-05
-    GIT_SHALLOW TRUE
+#===========================================================================#
+
+include(CPM)
+CPMAddPackage(
+    NAME ZLIB
+    VERSION 1.3.1
+    GITHUB_REPOSITORY madler/zlib
+    OPTIONS
+        "ZLIB_BUILD_EXAMPLES OFF"
+        "SKIP_INSTALL_FILES ON"
+        "SKIP_INSTALL_LIBRARIES ON"
+        "SKIP_INSTALL_HEADERS ON"
+        "SKIP_INSTALL_ALL ON"
+        "ZLIB_USE_STATIC_LIBS ON"
 )
 
-FetchContent_MakeAvailable(zlib xz-embedded)
+if(ZLIB_ADDED)
+    target_link_libraries(Compression PRIVATE zlibstatic)
+else()
+    find_package(Qt6ZlibPrivate REQUIRED)
+    target_link_libraries(Compression PRIVATE Qt6::ZlibPrivate)
+endif()
+
+#===========================================================================#
+
+CPMAddPackage(
+    NAME xz-embedded
+    VERSION 2024-12-30
+    GITHUB_REPOSITORY tukaani-project/xz-embedded
+    OPTIONS
+        "BUILD_SHAPELIB_CONTRIB OFF"
+        "BUILD_APPS OFF"
+        "BUILD_TESTING OFF"
+)
 
 qt_add_library(xz STATIC
     ${xz-embedded_SOURCE_DIR}/linux/include/linux/xz.h
@@ -47,7 +67,7 @@ qt_add_library(xz STATIC
 )
 
 target_include_directories(xz
-	PUBLIC
+    PUBLIC
         ${xz-embedded_SOURCE_DIR}/linux/include/linux
     PRIVATE
         ${xz-embedded_SOURCE_DIR}/linux/lib/xz
@@ -61,15 +81,4 @@ target_compile_definitions(xz
         XZ_USE_CRC64
 )
 
-###############
-
-target_link_libraries(Compression
-	PRIVATE
-        zlibstatic
-        xz
-        Utilities
-	PUBLIC
-		Qt6::Core
-)
-
-target_include_directories(Compression PUBLIC ${CMAKE_CURRENT_SOURCE_DIR})
+target_link_libraries(Compression PRIVATE xz)

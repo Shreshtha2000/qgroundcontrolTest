@@ -1,6 +1,6 @@
 /****************************************************************************
  *
- * (c) 2009-2020 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
+ * (c) 2009-2024 QGROUNDCONTROL PROJECT <http://www.qgroundcontrol.org>
  *
  * QGroundControl is licensed according to the terms in the file
  * COPYING.md in the root of the source code directory.
@@ -13,7 +13,6 @@
 #include "QGCApplication.h"
 #include "APMAutoPilotPlugin.h"
 #include "ParameterManager.h"
-#include "FactSystem.h"
 #include "Vehicle.h"
 #include "MAVLinkProtocol.h"
 #include "QGCLoggingCategory.h"
@@ -22,8 +21,6 @@
 
 QGC_LOGGING_CATEGORY(APMSensorsComponentControllerLog, "APMSensorsComponentControllerLog")
 QGC_LOGGING_CATEGORY(APMSensorsComponentControllerVerboseLog, "APMSensorsComponentControllerVerboseLog")
-
-const char* APMSensorsComponentController::_compassCalFitnessParam = "COMPASS_CAL_FIT";
 
 APMSensorsComponentController::APMSensorsComponentController(void)
     : _sensorsComponent(nullptr)
@@ -106,7 +103,7 @@ void APMSensorsComponentController::_startLogCalibration(void)
     }
     _cancelButton->setEnabled(_calTypeInProgress == QGCMAVLink::CalibrationMag);
 
-    connect(qgcApp()->toolbox()->mavlinkProtocol(), &MAVLinkProtocol::messageReceived, this, &APMSensorsComponentController::_mavlinkMessageReceived);
+    connect(MAVLinkProtocol::instance(), &MAVLinkProtocol::messageReceived, this, &APMSensorsComponentController::_mavlinkMessageReceived);
 }
 
 void APMSensorsComponentController::_startVisualCalibration(void)
@@ -119,7 +116,7 @@ void APMSensorsComponentController::_startVisualCalibration(void)
     
     _progressBar->setProperty("value", 0);
 
-    connect(qgcApp()->toolbox()->mavlinkProtocol(), &MAVLinkProtocol::messageReceived, this, &APMSensorsComponentController::_mavlinkMessageReceived);
+    connect(MAVLinkProtocol::instance(), &MAVLinkProtocol::messageReceived, this, &APMSensorsComponentController::_mavlinkMessageReceived);
 }
 
 void APMSensorsComponentController::_resetInternalState(void)
@@ -150,7 +147,7 @@ void APMSensorsComponentController::_resetInternalState(void)
 
 void APMSensorsComponentController::_stopCalibration(APMSensorsComponentController::StopCalibrationCode code)
 {
-    disconnect(qgcApp()->toolbox()->mavlinkProtocol(), &MAVLinkProtocol::messageReceived, this, &APMSensorsComponentController::_mavlinkMessageReceived);
+    disconnect(MAVLinkProtocol::instance(), &MAVLinkProtocol::messageReceived, this, &APMSensorsComponentController::_mavlinkMessageReceived);
     _vehicle->vehicleLinkManager()->setCommunicationLostEnabled(true);
 
     disconnect(_vehicle, &Vehicle::textMessageReceived, this, &APMSensorsComponentController::_handleUASTextMessage);
@@ -166,8 +163,8 @@ void APMSensorsComponentController::_stopCalibration(APMSensorsComponentControll
     if (code == StopCalibrationSuccess) {
         _resetInternalState();
         _progressBar->setProperty("value", 1);
-        if (parameterExists(FactSystem::defaultComponentId, QStringLiteral("COMPASS_LEARN"))) {
-            getParameterFact(FactSystem::defaultComponentId, QStringLiteral("COMPASS_LEARN"))->setRawValue(0);
+        if (parameterExists(ParameterManager::defaultComponentId, QStringLiteral("COMPASS_LEARN"))) {
+            getParameterFact(ParameterManager::defaultComponentId, QStringLiteral("COMPASS_LEARN"))->setRawValue(0);
         }
     } else {
         _progressBar->setProperty("value", 0);
@@ -227,8 +224,8 @@ void APMSensorsComponentController::_mavCommandResult(int vehicleId, int compone
 
             _startLogCalibration();
             uint8_t compassBits = 0;
-            if (getParameterFact(FactSystem::defaultComponentId, QStringLiteral("COMPASS_DEV_ID"))->rawValue().toInt() > 0 &&
-                    getParameterFact(FactSystem::defaultComponentId, QStringLiteral("COMPASS_USE"))->rawValue().toBool()) {
+            if (getParameterFact(ParameterManager::defaultComponentId, QStringLiteral("COMPASS_DEV_ID"))->rawValue().toInt() > 0 &&
+                    getParameterFact(ParameterManager::defaultComponentId, QStringLiteral("COMPASS_USE"))->rawValue().toBool()) {
                 compassBits |= 1 << 0;
                 qCDebug(APMSensorsComponentControllerLog) << "Performing onboard compass cal for compass 1";
             } else {
@@ -236,8 +233,8 @@ void APMSensorsComponentController::_mavCommandResult(int vehicleId, int compone
                 _rgCompassCalSucceeded[0] = true;
                 _rgCompassCalFitness[0] = 0;
             }
-            if (getParameterFact(FactSystem::defaultComponentId, QStringLiteral("COMPASS_DEV_ID2"))->rawValue().toInt() > 0 &&
-                    getParameterFact(FactSystem::defaultComponentId, QStringLiteral("COMPASS_USE2"))->rawValue().toBool()) {
+            if (getParameterFact(ParameterManager::defaultComponentId, QStringLiteral("COMPASS_DEV_ID2"))->rawValue().toInt() > 0 &&
+                    getParameterFact(ParameterManager::defaultComponentId, QStringLiteral("COMPASS_USE2"))->rawValue().toBool()) {
                 compassBits |= 1 << 1;
                 qCDebug(APMSensorsComponentControllerLog) << "Performing onboard compass cal for compass 2";
             } else {
@@ -245,8 +242,8 @@ void APMSensorsComponentController::_mavCommandResult(int vehicleId, int compone
                 _rgCompassCalSucceeded[1] = true;
                 _rgCompassCalFitness[1] = 0;
             }
-            if (getParameterFact(FactSystem::defaultComponentId, QStringLiteral("COMPASS_DEV_ID3"))->rawValue().toInt() > 0 &&
-                    getParameterFact(FactSystem::defaultComponentId, QStringLiteral("COMPASS_USE3"))->rawValue().toBool()) {
+            if (getParameterFact(ParameterManager::defaultComponentId, QStringLiteral("COMPASS_DEV_ID3"))->rawValue().toInt() > 0 &&
+                    getParameterFact(ParameterManager::defaultComponentId, QStringLiteral("COMPASS_USE3"))->rawValue().toBool()) {
                 compassBits |= 1 << 2;
                 qCDebug(APMSensorsComponentControllerLog) << "Performing onboard compass cal for compass 3";
             } else {
@@ -256,10 +253,10 @@ void APMSensorsComponentController::_mavCommandResult(int vehicleId, int compone
             }
 
             // We bump up the fitness value so calibration will always succeed
-            Fact* compassCalFitness = getParameterFact(FactSystem::defaultComponentId, _compassCalFitnessParam);
+            Fact* compassCalFitness = getParameterFact(ParameterManager::defaultComponentId, _compassCalFitnessParam);
             _restoreCompassCalFitness = true;
             _previousCompassCalFitness = compassCalFitness->rawValue().toFloat();
-            getParameterFact(FactSystem::defaultComponentId, _compassCalFitnessParam)->setRawValue(100.0);
+            getParameterFact(ParameterManager::defaultComponentId, _compassCalFitnessParam)->setRawValue(100.0);
 
             _appendStatusLog(tr("Rotate the vehicle randomly around all axes until the progress bar fills all the way to the right ."));
             _vehicle->sendMavCommand(_vehicle->defaultComponentId(),
@@ -423,12 +420,12 @@ void APMSensorsComponentController::_refreshParams(void)
     fastRefreshList << QStringLiteral("COMPASS_OFS_X") << QStringLiteral("COMPASS_OFS_X") << QStringLiteral("COMPASS_OFS_X")
                     << QStringLiteral("INS_ACCOFFS_X") << QStringLiteral("INS_ACCOFFS_Y") << QStringLiteral("INS_ACCOFFS_Z");
     foreach (const QString &paramName, fastRefreshList) {
-        _vehicle->parameterManager()->refreshParameter(FactSystem::defaultComponentId, paramName);
+        _vehicle->parameterManager()->refreshParameter(ParameterManager::defaultComponentId, paramName);
     }
     
     // Now ask for all to refresh
-    _vehicle->parameterManager()->refreshParametersPrefix(FactSystem::defaultComponentId, QStringLiteral("COMPASS_"));
-    _vehicle->parameterManager()->refreshParametersPrefix(FactSystem::defaultComponentId, QStringLiteral("INS_"));
+    _vehicle->parameterManager()->refreshParametersPrefix(ParameterManager::defaultComponentId, QStringLiteral("COMPASS_"));
+    _vehicle->parameterManager()->refreshParametersPrefix(ParameterManager::defaultComponentId, QStringLiteral("INS_"));
 }
 
 void APMSensorsComponentController::_updateAndEmitShowOrientationCalArea(bool show)
@@ -461,13 +458,12 @@ void APMSensorsComponentController::cancelCalibration(void)
 
 void APMSensorsComponentController::nextClicked(void)
 {
-    WeakLinkInterfacePtr weakLink = _vehicle->vehicleLinkManager()->primaryLink();
-    if (!weakLink.expired()) {
+    SharedLinkInterfacePtr sharedLink = _vehicle->vehicleLinkManager()->primaryLink().lock();
+    if (sharedLink) {
         mavlink_message_t       msg;
-        SharedLinkInterfacePtr  sharedLink = weakLink.lock();
 
-        mavlink_msg_command_ack_pack_chan(qgcApp()->toolbox()->mavlinkProtocol()->getSystemId(),
-                                          qgcApp()->toolbox()->mavlinkProtocol()->getComponentId(),
+        mavlink_msg_command_ack_pack_chan(MAVLinkProtocol::instance()->getSystemId(),
+                                          MAVLinkProtocol::getComponentId(),
                                           sharedLink->mavlinkChannel(),
                                           &msg,
                                           0,    // command
@@ -497,12 +493,11 @@ bool APMSensorsComponentController::accelSetupNeeded(void) const
 
 bool APMSensorsComponentController::usingUDPLink(void)
 {
-    WeakLinkInterfacePtr weakLink = _vehicle->vehicleLinkManager()->primaryLink();
-    if (weakLink.expired()) {
-        return false;
-    } else {
-        SharedLinkInterfacePtr sharedLink = weakLink.lock();
+    SharedLinkInterfacePtr sharedLink = _vehicle->vehicleLinkManager()->primaryLink().lock();
+    if (sharedLink) {
         return sharedLink->linkConfiguration()->type() == LinkConfiguration::TypeUdp;
+    } else {
+        return false;
     }
 }
 
@@ -714,6 +709,6 @@ void APMSensorsComponentController::_restorePreviousCompassCalFitness(void)
 {
     if (_restoreCompassCalFitness) {
         _restoreCompassCalFitness = false;
-        getParameterFact(FactSystem::defaultComponentId, _compassCalFitnessParam)->setRawValue(_previousCompassCalFitness);
+        getParameterFact(ParameterManager::defaultComponentId, _compassCalFitnessParam)->setRawValue(_previousCompassCalFitness);
     }
 }

@@ -18,6 +18,7 @@ import QGroundControl.ScreenTools
 import QGroundControl.Palette
 import QGroundControl.FactSystem
 import QGroundControl.FactControls
+import QGroundControl.AutoPilotPlugin
 
 RowLayout {
     id:         control
@@ -144,7 +145,8 @@ RowLayout {
                                 parent.children[1].toggle()
                                 parent.children[1].clicked()
                             } else {
-                                activeVehicle.flightMode = modelData
+                                var controller = globals.guidedControllerFlyView
+                                controller.confirmAction(controller.actionSetFlightMode, modelData)
                                 mainWindow.closeIndicatorDrawer()
                             }
                         }
@@ -216,11 +218,12 @@ RowLayout {
 
                 LabelledButton {
                     Layout.fillWidth:   true
-                    label:              qsTr("RC Transmitter Flight Modes")
+                    label:              qsTr("Flight Modes")
                     buttonText:         qsTr("Configure")
+                    visible:            _activeVehicle.autopilotPlugin.knownVehicleComponentAvailable(AutoPilotPlugin.KnownFlightModesVehicleComponent)
 
                     onClicked: {
-                        mainWindow.showVehicleSetupTool(qsTr("Radio"))
+                        mainWindow.showKnownVehicleComponentConfigPage(AutoPilotPlugin.KnownFlightModesVehicleComponent)
                         mainWindow.closeIndicatorDrawer()
                     }
                 }
