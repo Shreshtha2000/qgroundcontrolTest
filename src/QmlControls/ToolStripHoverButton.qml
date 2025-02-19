@@ -92,7 +92,7 @@ Button {
         id:             buttonBkRect
         color:          (control.checked || control.pressed) ?
                             qgcPal.buttonHighlight :
-                            (control.hovered ? qgcPal.toolStripHoverColor : qgcPal.toolbarBackground)
+                            (control.hovered ? qgcPal.toolStripHoverColor : "transparent")
         anchors.fill:   parent
     }
 }

@@ -58,7 +58,13 @@ public:
     Q_PROPERTY(QSize            videoSize               READ    videoSize                                   NOTIFY videoSizeChanged)
 
     virtual bool        hasVideo            ();
+
+    virtual bool        hasVideoMultiple    (int id);
     virtual bool        isGStreamer         ();
+
+    virtual bool        isGStreamerMultiple         (int id);
+
+
     virtual bool        isUvc               ();
     virtual bool        isTaisync           () { return _isTaisync; }
     virtual bool        fullScreen          () { return _fullScreen; }
@@ -108,6 +114,9 @@ public:
     Q_INVOKABLE void startVideo     ();
     Q_INVOKABLE void stopVideo      ();
 
+    Q_INVOKABLE void startVideoMultiple(int id);
+    Q_INVOKABLE void stopVideoMultiple(int id);
+
     Q_INVOKABLE void startRecording (const QString& videoFile = QString());
     Q_INVOKABLE void stopRecording  ();
 
@@ -137,6 +146,11 @@ protected slots:
     void _tcpUrlChanged             ();
     void _lowLatencyModeChanged     ();
     void _updateUVC                 ();
+
+    void _updateUVCMultiple         (int id);
+
+
+
     void _setActiveVehicle          (Vehicle* vehicle);
     void _aspectRatioChanged        ();
     void _communicationLostChanged  (bool communicationLost);
@@ -146,9 +160,18 @@ protected:
 
     void _initVideo                 ();
     bool _updateSettings            (unsigned id);
+
+    bool _updateSettingsMultiple    (unsigned id);
+    bool _updateVideoUriMultiple    (unsigned id, const QString& uri);
+
     bool _updateVideoUri            (unsigned id, const QString& uri);
     void _cleanupOldVideos          ();
     void _restartAllVideos          ();
+
+    void _restartVideoMultiple              (unsigned id);
+    void _startReceiverMultiple             (unsigned id);
+    void _stopReceiverMultiple              (unsigned id);
+
     void _restartVideo              (unsigned id);
     void _startReceiver             (unsigned id);
     void _stopReceiver              (unsigned id);
@@ -161,6 +184,13 @@ protected:
     VideoReceiver*          _videoReceiver[2]       = { nullptr, nullptr };
     void*                   _videoSink[2]           = { nullptr, nullptr };
     QString                 _videoUri[2];
+
+    QList<VideoReceiver * > _videoReceiverList;
+    QList<void*>            _videoSinkList;
+    QList<QString>          _videoUriList;
+    QList<bool>             _videoStartedList;
+    QList<bool>             _lowLatencyStreamingList;
+
     // FIXME: AV: _videoStarted seems to be access from 3 different threads, from time to time
     // 1) Video Receiver thread
     // 2) Video Manager/main app thread
@@ -173,6 +203,7 @@ protected:
     QAtomicInteger<bool>    _recording              = false;
     QAtomicInteger<quint32> _videoSize              = 0;
     VideoSettings*          _videoSettings          = nullptr;
+    QList<VideoSettings*>   _videoSettingsList;
     QString                 _uvcVideoSourceID;
     bool                    _fullScreen             = false;
     Vehicle*                _activeVehicle          = nullptr;

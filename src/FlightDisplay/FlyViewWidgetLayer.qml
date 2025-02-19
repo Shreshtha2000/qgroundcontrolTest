@@ -118,8 +118,8 @@ Item {
     FlyViewInstrumentPanel {
         id:                         instrumentPanel
         anchors.margins:            _toolsMargin
-        anchors.top:                multiVehiclePanelSelector.visible ? multiVehiclePanelSelector.bottom : parent.top
-        anchors.right:              parent.right
+        anchors.bottom:                /*multiVehiclePanelSelector.visible ? multiVehiclePanelSelector.bottom : parent.top*/ parent.bottom
+        anchors.left:              parent.left
         width:                      _rightPanelWidth
         spacing:                    _toolsMargin
         visible:                    QGroundControl.corePlugin.options.flyView.showInstrumentPanel && multiVehiclePanelSelector.showSingleVehiclePanel
@@ -233,6 +233,7 @@ Item {
             var halfPanelWidth  = telemetryPanel.width / 2
             var leftX           = (halfRootWidth - halfPanelWidth) - _toolsMargin
             var rightX          = (halfRootWidth + halfPanelWidth) + _toolsMargin
+            return halfRootWidth - halfPanelWidth
             if (leftX >= parentToolInsets.leftEdgeBottomInset || rightX <= parentToolInsets.rightEdgeBottomInset ) {
                 // It will fit in the horizontalCenter
                 return halfRootWidth - halfPanelWidth

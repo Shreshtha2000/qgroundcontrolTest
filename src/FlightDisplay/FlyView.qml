@@ -160,11 +160,17 @@ Item {
 
     FlyViewVideo {
         id: videoControl
+        videoNo: 1
     }
+    // FlyViewVideo {
+    //     videoNo: 0
+    //     id: videoControl1
+    //     anchors.bottom: videoControl.top
+    // }
 
     QGCPipOverlay {
         id:                     _pipOverlay
-        anchors.left:           parent.left
+        anchors.right:           parent.right
         anchors.bottom:         parent.bottom
         anchors.margins:        _toolsMargin
         item1IsFullSettingsKey: "MainFlyWindowIsMap"

@@ -34,7 +34,7 @@ ColumnLayout {
         height:             _outerRadius * 2
         Layout.fillWidth:   true
         radius:             _outerRadius
-        color:              qgcPal.window
+        color:              "transparent"
 
         DeadMouseArea { anchors.fill: parent }
 
@@ -44,6 +44,7 @@ ColumnLayout {
             anchors.left:           parent.left
             size:                   _innerRadius * 2
             vehicle:                globals.activeVehicle
+            opacity:                0.7
             anchors.verticalCenter: parent.verticalCenter
         }
 
@@ -53,6 +54,7 @@ ColumnLayout {
             anchors.left:           attitude.right
             size:                   _innerRadius * 2
             vehicle:                globals.activeVehicle
+            opacity:                0.7
             anchors.verticalCenter: parent.verticalCenter
         }
     }

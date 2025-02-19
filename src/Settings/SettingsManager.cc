@@ -45,6 +45,11 @@ void SettingsManager::setToolbox(QGCToolbox *toolbox)
     _autoConnectSettings =          new AutoConnectSettings         (this);
     _videoSettings =                new VideoSettings               (this);
     _flightMapSettings =            new FlightMapSettings           (this);
+    for(int i=0;i<numberOfVideos;i++)
+    {
+        VideoSettings* vSettings=  new VideoSettings                (this);
+        _videoSettingsList.append(vSettings);
+    }
     _rtkSettings =                  new RTKSettings                 (this);
     _flyViewSettings =              new FlyViewSettings             (this);
     _planViewSettings =             new PlanViewSettings            (this);

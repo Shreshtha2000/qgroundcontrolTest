@@ -16,7 +16,8 @@ import QGroundControl.ScreenTools   1.0
 
 Item {
     id:         _root
-    visible:    QGroundControl.videoManager.hasVideo
+    visible:    /*QGroundControl.videoManager.hasVideo*/true
+    property int videoNo : 0
 
     property Item pipState: videoPipState
     QGCPipState {
@@ -52,9 +53,26 @@ Item {
     //-- Video Streaming
     FlightDisplayViewVideo {
         id:             videoStreaming
-        anchors.fill:   parent
+        // anchors.fill:   parent
+        anchors.left: parent.left
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+        width: parent.width/2
         useSmallFont:   _root.pipState.state !== _root.pipState.fullState
-        visible:        QGroundControl.videoManager.isGStreamer
+        visible:        /*QGroundControl.videoManager.isGStreamer*/true
+         _videoNum:0
+    }
+    FlighDisplayVideo {
+        id:             videoStreaming1
+        // anchors.fill:   parent
+        anchors.right: parent.right
+        anchors.top: parent.top
+        anchors.bottom: parent.bottom
+              width: parent.width/2
+        anchors.left: videoStreaming.right
+        useSmallFont:   _root.pipState.state !== _root.pipState.fullState
+        visible:        /*QGroundControl.videoManager.isGStreamer*/true
+         _videoNum:0
     }
     //-- UVC Video (USB Camera or Video Device)
     Loader {
